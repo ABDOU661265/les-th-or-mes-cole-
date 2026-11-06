@@ -1,0 +1,273 @@
+/* i18n.js — traductions français / arabe / anglais */
+const I18N = {
+  fr: {
+    lang: "FR", dir: "ltr",
+    school_sub: "Préscolaire · Primaire · Collège",
+    login_title: "Connexion",
+    login_hint: "Utilisez le compte remis par l'administration de l'école.",
+    email: "Adresse e-mail",
+    password: "Mot de passe",
+    sign_in: "Se connecter",
+    no_account: "Pas de compte ? Il est créé par l'administration de l'école.",
+
+    nav_home: "Accueil", nav_messages: "Messages", nav_children: "Enfants", nav_account: "Compte",
+
+    t_fees: "Frais de scolarité",
+    t_carnet: "Carnet de correspondance",
+    t_schedule: "Emploi du temps",
+    t_homework: "Devoirs",
+    t_absences: "Absences & retards",
+    t_grades: "Notes & résultats",
+    t_menu: "Menu cantine",
+    t_bus: "Transport scolaire",
+    t_announcements: "Annonces",
+    t_photos: "Galerie photos",
+    t_contact: "Nous contacter",
+    t_logout: "Déconnexion",
+    t_users: "Comptes",
+    t_students: "Élèves",
+    t_stats: "Tableau de bord",
+    t_audit: "Journal d'activité",
+
+    role_admin: "Direction", role_moderator: "Modérateur", role_parent: "Parent",
+
+    loading: "Chargement…",
+    empty: "Aucun élément pour le moment.",
+    save: "Enregistrer", cancel: "Annuler", delete: "Supprimer", edit: "Modifier",
+    add: "Ajouter", close: "Fermer", send: "Envoyer", confirm: "Confirmer",
+    title: "Titre", message: "Message", subject: "Matière", class: "Classe",
+    date: "Date", due: "À rendre", reason: "Motif", teacher: "Professeur", room: "Salle",
+    amount: "Montant", paid: "Payé", unpaid: "À payer", total: "Total",
+    average: "Moyenne", student: "Élève", parent: "Parent", name: "Prénom",
+    last_name: "Nom", phone: "Téléphone", role: "Rôle", active: "Actif",
+    new_password: "Nouveau mot de passe", old_password: "Mot de passe actuel",
+    change_password: "Changer le mot de passe", logout: "Se déconnecter",
+    no_account_yet: "Compte désactivé", online: "En ligne",
+    justified: "Justifiée", unjustified: "Non justifiée",
+    absence: "Absence", lateness: "Retard",
+    monday_short: "Dim", tuesday_short: "Lun", wednesday_short: "Mar",
+    thursday_short: "Mer", friday_short: "Jeu",
+    day_full_1: "Dimanche", day_full_2: "Lundi", day_full_3: "Mardi",
+    day_full_4: "Mercredi", day_full_5: "Jeudi",
+    term: "Trimestre",
+    new_announcement: "Nouvelle annonce",
+    new_user: "Créer un compte",
+    new_student: "Ajouter un élève",
+    new_homework: "Donner un devoir",
+    new_absence: "Signaler une absence",
+    must_change: "Pour votre sécurité, choisissez un nouveau mot de passe.",
+    saved: "Enregistré", deleted: "Supprimé", created: "Créé",
+    confirm_delete: "Confirmer la suppression ?",
+    login_error: "E-mail ou mot de passe incorrect.",
+    too_many: "Trop de tentatives. Patientez un instant.",
+    session_expired: "Session expirée, veuillez vous reconnecter.",
+    weak: "Mot de passe trop faible (8 caractères, majuscule, minuscule, chiffre).",
+    pw_mismatch: "Mot de passe incorrect.",
+    required: "Merci de remplir les champs obligatoires.",
+    email_taken: "Cette adresse e-mail existe déjà.",
+    role_not_allowed: "Action non autorisée pour votre rôle.",
+    contact_title: "Établissement",
+    address: "Adresse", hours: "Horaires", visit_hours: "Visites sur rendez-vous",
+    call: "Appeler", write: "Écrire", itinerary: "Itinéraire",
+    pick_child: "Choisir un élève",
+    unpaid_count: "facture(s) en attente",
+    pending: "en attente",
+    no_child: "Aucun élève rattaché à ce compte.",
+    switch_lang: "Langue"
+  },
+
+  ar: {
+    lang: "ع", dir: "rtl",
+    school_sub: "تحضيري · ابتدائي · متوسط",
+    login_title: "تسجيل الدخول",
+    login_hint: "استعمل الحساب الذي سلّمته لك إدارة المدرسة.",
+    email: "البريد الإلكتروني",
+    password: "كلمة المرور",
+    sign_in: "دخول",
+    no_account: "ليس لديك حساب؟ تُنشئه إدارة المدرسة.",
+
+    nav_home: "الرئيسية", nav_messages: "الرسائل", nav_children: "الأبناء", nav_account: "الحساب",
+
+    t_fees: "المستحقات المالية",
+    t_carnet: "دفتر المراسلة",
+    t_schedule: "الجدول الزمني",
+    t_homework: "الواجبات",
+    t_absences: "الغيابات والتأخرات",
+    t_grades: "النتائج المدرسية",
+    t_menu: "قائمة الطعام",
+    t_bus: "النقل المدرسي",
+    t_announcements: "الإعلانات",
+    t_photos: "معرض الصور",
+    t_contact: "اتصل بنا",
+    t_logout: "تسجيل الخروج",
+    t_users: "الحسابات",
+    t_students: "التلاميذ",
+    t_stats: "لوحة المتابعة",
+    t_audit: "سجل النشاط",
+
+    role_admin: "الإدارة", role_moderator: "مشرف", role_parent: "ولي",
+
+    loading: "جار التحميل…",
+    empty: "لا يوجد عنصر حالياً.",
+    save: "حفظ", cancel: "إلغاء", delete: "حذف", edit: "تعديل",
+    add: "إضافة", close: "إغلاق", send: "إرسال", confirm: "تأكيد",
+    title: "العنوان", message: "الرسالة", subject: "المادة", class: "القسم",
+    date: "التاريخ", due: "آخر أجل", reason: "السبب", teacher: "الأستاذ", room: "القاعة",
+    amount: "المبلغ", paid: "مدفوع", unpaid: "غير مدفوع", total: "المجموع",
+    average: "المعدل", student: "التلميذ", parent: "الولي", name: "الاسم",
+    last_name: "اللقب", phone: "الهاتف", role: "الصلاحية", active: "نشط",
+    new_password: "كلمة مرور جديدة", old_password: "كلمة المرور الحالية",
+    change_password: "تغيير كلمة المرور", logout: "تسجيل الخروج",
+    no_account_yet: "حساب معطّل", online: "متصل",
+    justified: "مبرر", unjustified: "غير مبرر",
+    absence: "غياب", lateness: "تأخر",
+    monday_short: "الأحد", tuesday_short: "الإثنين", wednesday_short: "الثلاثاء",
+    thursday_short: "الأربعاء", friday_short: "الخميس",
+    day_full_1: "الأحد", day_full_2: "الإثنين", day_full_3: "الثلاثاء",
+    day_full_4: "الأربعاء", day_full_5: "الخميس",
+    term: "الفصل",
+    new_announcement: "إعلان جديد",
+    new_user: "إنشاء حساب",
+    new_student: "إضافة تلميذ",
+    new_homework: "إضافة واجب",
+    new_absence: "تسجيل غياب",
+    must_change: "من أجل أمنك، اختر كلمة مرور جديدة.",
+    saved: "تم الحفظ", deleted: "تم الحذف", created: "تم الإنشاء",
+    confirm_delete: "تأكيد الحذف؟",
+    login_error: "البريد الإلكتروني أو كلمة المرور غير صحيحة.",
+    too_many: "محاولات كثيرة. انتظر قليلاً.",
+    session_expired: "انتهت الجلسة، أعد تسجيل الدخول.",
+    weak: "كلمة المرور ضعيفة (8 أحرف، حرف كبير، حرف صغير، رقم).",
+    pw_mismatch: "كلمة المرور غير صحيحة.",
+    required: "يرجى ملء الحقول الإلزامية.",
+    email_taken: "هذا البريد الإلكتروني مستعمل مسبقاً.",
+    role_not_allowed: "العملية غير مسموحة لصلاحيتك.",
+    contact_title: "المؤسسة",
+    address: "العنوان", hours: "أوقات العمل", visit_hours: "الزيارات بموعد مسبق",
+    call: "اتصال", write: "مراسلة", itinerary: "المسار",
+    pick_child: "اختر تلميذاً",
+    unpaid_count: "فاتورة في الانتظار",
+    pending: "في الانتظار",
+    no_child: "لا يوجد تلميذ مرتبط بهذا الحساب.",
+    switch_lang: "اللغة"
+  },
+
+  en: {
+    lang: "EN", dir: "ltr",
+    school_sub: "Preschool · Primary · Middle school",
+    login_title: "Sign in",
+    login_hint: "Use the account provided by the school administration.",
+    email: "Email address",
+    password: "Password",
+    sign_in: "Sign in",
+    no_account: "No account? The school administration creates it for you.",
+
+    nav_home: "Home", nav_messages: "Messages", nav_children: "Children", nav_account: "Account",
+
+    t_fees: "Tuition & fees",
+    t_carnet: "Correspondence book",
+    t_schedule: "Timetable",
+    t_homework: "Homework",
+    t_absences: "Absences & lateness",
+    t_grades: "Marks & results",
+    t_menu: "Canteen menu",
+    t_bus: "School transport",
+    t_announcements: "Announcements",
+    t_photos: "Photo gallery",
+    t_contact: "Contact us",
+    t_logout: "Sign out",
+    t_users: "Accounts",
+    t_students: "Students",
+    t_stats: "Dashboard",
+    t_audit: "Activity log",
+
+    role_admin: "Management", role_moderator: "Moderator", role_parent: "Parent",
+
+    loading: "Loading…",
+    empty: "Nothing here yet.",
+    save: "Save", cancel: "Cancel", delete: "Delete", edit: "Edit",
+    add: "Add", close: "Close", send: "Send", confirm: "Confirm",
+    title: "Title", message: "Message", subject: "Subject", class: "Class",
+    date: "Date", due: "Due", reason: "Reason", teacher: "Teacher", room: "Room",
+    amount: "Amount", paid: "Paid", unpaid: "Unpaid", total: "Total",
+    average: "Average", student: "Student", parent: "Parent", name: "First name",
+    last_name: "Last name", phone: "Phone", role: "Role", active: "Active",
+    new_password: "New password", old_password: "Current password",
+    change_password: "Change password", logout: "Sign out",
+    no_account_yet: "Account disabled", online: "Online",
+    justified: "Justified", unjustified: "Not justified",
+    absence: "Absence", lateness: "Lateness",
+    monday_short: "Sun", tuesday_short: "Mon", wednesday_short: "Tue",
+    thursday_short: "Wed", friday_short: "Thu",
+    day_full_1: "Sunday", day_full_2: "Monday", day_full_3: "Tuesday",
+    day_full_4: "Wednesday", day_full_5: "Thursday",
+    term: "Term",
+    new_announcement: "New announcement",
+    new_user: "Create an account",
+    new_student: "Add a student",
+    new_homework: "Assign homework",
+    new_absence: "Report an absence",
+    must_change: "For your security, please choose a new password.",
+    saved: "Saved", deleted: "Deleted", created: "Created",
+    confirm_delete: "Confirm deletion?",
+    login_error: "Wrong email or password.",
+    too_many: "Too many attempts. Please wait.",
+    session_expired: "Session expired, please sign in again.",
+    weak: "Password too weak (8 chars, upper, lower, digit).",
+    pw_mismatch: "Wrong password.",
+    required: "Please fill in the required fields.",
+    email_taken: "This email address already exists.",
+    role_not_allowed: "Not allowed with your role.",
+    contact_title: "School",
+    address: "Address", hours: "Opening hours", visit_hours: "Visits by appointment",
+    call: "Call", write: "Email", itinerary: "Directions",
+    pick_child: "Choose a student",
+    unpaid_count: "pending invoice(s)",
+    pending: "pending",
+    no_child: "No student linked to this account.",
+    switch_lang: "Language"
+  }
+};
+
+const ERRORS = {
+  invalid_credentials: "login_error",
+  too_many_attempts: "too_many",
+  session_expired: "session_expired",
+  password_weak: "weak",
+  password_too_short: "weak",
+  password_too_long: "weak",
+  wrong_password: "pw_mismatch",
+  invalid_data: "required",
+  title_required: "required",
+  email_taken: "email_taken",
+  forbidden: "role_not_allowed",
+  role_not_allowed: "role_not_allowed",
+  account_disabled: "no_account_yet"
+};
+
+let LANG = localStorage.getItem("lt_lang") || "fr";
+
+function t(key) {
+  const pack = I18N[LANG] || I18N.fr;
+  return pack[key] !== undefined ? pack[key] : (I18N.fr[key] !== undefined ? I18N.fr[key] : key);
+}
+
+function errText(code) {
+  const k = ERRORS[code];
+  return k ? t(k) : (code || t("required"));
+}
+
+function applyLang(lang, root) {
+  LANG = I18N[lang] ? lang : "fr";
+  localStorage.setItem("lt_lang", LANG);
+  document.documentElement.lang = LANG;
+  document.documentElement.dir = I18N[LANG].dir;
+  (root || document).querySelectorAll("[data-i18n]").forEach(el => {
+    el.textContent = t(el.getAttribute("data-i18n"));
+  });
+  document.querySelectorAll(".lang-btn").forEach(b => {
+    b.classList.toggle("active", b.dataset.lang === LANG);
+  });
+  const lab = document.getElementById("lang-label");
+  if (lab) lab.textContent = I18N[LANG].lang;
+}
