@@ -300,3 +300,15 @@ html[dir="rtl"] .item { border-inline-start-width: 4px; }
 @media (prefers-reduced-motion: reduce) {
   * { animation: none !important; transition: none !important; }
 }
+
+/* ---------- adresse du serveur (connexion) ---------- */
+.srv-box { margin: 10px 0 4px; border-top: 1px solid var(--line, #f0e4d8); padding-top: 8px; }
+.srv-box summary {
+  cursor: pointer; font-size: 12.5px; color: var(--ink-2, #7d6e63);
+  list-style: none; padding: 4px 0;
+}
+.srv-box summary::-webkit-details-marker { display: none; }
+.srv-box summary::before { content: "▸ "; }
+.srv-box[open] summary::before { content: "▾ "; }
+.srv-row { display: flex; gap: 8px; margin-top: 8px; }
+.srv-row .btn { flex: 1; padding: 9px; font-size: 12.5px; }

@@ -34,6 +34,20 @@
     </div>
 
     <p id="login-error" class="error" role="alert"></p>
+
+    <!-- adresse du serveur : utile quand l'application est utilisee sur un
+         autre ordinateur que celui de l'ecole -->
+    <details id="srv-box" class="srv-box">
+      <summary data-i18n="srv_title">Serveur de l'école</summary>
+      <label for="srv-url" data-i18n="srv_label">Adresse du serveur</label>
+      <input id="srv-url" type="text" inputmode="url" placeholder="192.168.1.24:8765"
+             autocomplete="off" spellcheck="false">
+      <div class="srv-row">
+        <button type="button" class="btn ghost" id="srv-test" data-i18n="srv_test">Tester</button>
+        <button type="button" class="btn ghost" id="srv-default" data-i18n="srv_reset">Cet ordinateur</button>
+      </div>
+      <p id="srv-status" class="hint" style="margin:6px 0 0"></p>
+    </details>
     <button type="submit" class="btn primary" data-i18n="sign_in">Se connecter</button>
 
     <div class="lang-switch" role="group" aria-label="Langue">

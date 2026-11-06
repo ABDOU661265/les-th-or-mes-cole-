@@ -67,7 +67,30 @@ Le logo fourni (`Logo 2.png`, orange) est utilisé dans l'écran de connexion, l
 barre supérieure et l'icône du fichier .exe. L'ancien bleu de la maquette a été
 remplacé par l'orange de l'école (`#ef6c00`).
 
-## 2. Les écrans
+## 2. Accès depuis un autre appareil (téléphone, PC d'un parent)
+
+Par défaut, l'application **écoute sur tout le réseau local de l'école** et affiche
+son adresse dans la console (`--console`) :
+
+```
+reseau local (a donner aux parents) : http://192.168.1.24:8765/
+```
+
+C'est **cette adresse** que l'on donne aux parents — pas `127.0.0.1`, qui ne
+fonctionne que sur l'ordinateur de l'école. Elle s'ouvre aussi dans le navigateur
+d'un téléphone connecté au même Wi-Fi.
+
+| Situation | Ce qu'il faut faire |
+|---|---|
+| même Wi-Fi que le PC de l'école | ouvrir `http://<adresse affichée>:8765/` |
+| l'application est sur **son** PC | ouvrir le bloc **Serveur de l'école** sur l'écran de connexion, saisir l'adresse, **Tester** (elle est mémorisée) |
+| aucune connexion | vérifier le Wi-Fi, puis refaire **Tester** |
+
+Sécurité : le serveur répond au réseau local mais **chaque requête exige un jeton
+de session** ; les mots de passe restent hachés et le blocage après 5 erreurs
+s'applique. Pour revenir à un usage strictement local : lancer avec `--local`.
+
+## 3. Les écrans
 
 **Parents** : frais de scolarité, carnet de correspondance, emploi du temps,
 devoirs, absences & retards, notes & résultats, menu cantine, transport scolaire,
@@ -81,7 +104,7 @@ Les 3 langues se changent à tout moment (bouton **FR / ع / EN** dans la barre 
 haut). L'arabe est affiché de droite à gauche. Les contenus saisis par l'école
 (titres d'annonces, devoirs, plats de la cantine…) ont trois champs : FR, AR, EN.
 
-## 3. Sécurité
+## 4. Sécurité
 
 - mots de passe **jamais stockés en clair** : PBKDF2-HMAC-SHA256, 100 000 itérations,
   sel aléatoire de 16 octets par compte ;
@@ -102,7 +125,7 @@ haut). L'arabe est affiché de droite à gauche. Les contenus saisis par l'écol
 - **journal d'activité** : connexions réussies/échouées, créations de comptes,
   modifications, suppressions (visible par l'admin).
 
-## 4. Compiler soi-même
+## 5. Compiler soi-même
 
 ```bash
 # Linux / macOS (développement)
@@ -124,19 +147,19 @@ Le programme assemble : un serveur HTTP/SQLite en C (~5 000 lignes),
 l'interface (HTML/CSS/JS sans dépendance, ~1 500 lignes) **embarquée dans
 l'exécutable**, et SQLite + cJSON (domaine public / MIT) compilés statiquement.
 
-## 5. Signature et avertissement SmartScreen
+## 6. Signature et avertissement SmartScreen
 
 L'exécutable n'est pas signé. Windows SmartScreen peut afficher un avertissement
 au premier lancement ; c'est normal pour un programme non signé. Pour le faire
 disparaître lors d'un déploiement officiel, il faut un certificat de signature de
 code (voir `PACKAGING.md`).
 
-## 6. Version .apk (Android) — étape suivante
+## 7. Version .apk (Android) — étape suivante
 
 Voir `PACKAGING.md` (§APK) : la même interface et la même API sont réutilisées ;
 seul l'emballage change.
 
-## 7. Structure
+## 8. Structure
 
 ```
 app/

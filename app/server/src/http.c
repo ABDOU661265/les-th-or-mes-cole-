@@ -44,6 +44,9 @@ void http_send_cache(request_t *rq, int status, const char *mime, const char *da
                  "Content-Type: %s\r\n"
                  "Content-Length: %lu\r\n"
                  "%s"
+                 "Access-Control-Allow-Origin: *\r\n"
+                 "Access-Control-Allow-Headers: Content-Type, Authorization, X-Token, X-Client\r\n"
+                 "Access-Control-Allow-Methods: GET, POST, OPTIONS\r\n"
                  "X-Content-Type-Options: nosniff\r\n"
                  "X-Frame-Options: SAMEORIGIN\r\n"
                  "Referrer-Policy: no-referrer\r\n"
@@ -344,6 +347,27 @@ void http_handle(sock_t s)
 {
     request_t rq;
     if (!parse_request(s, &rq)) { CLOSESOCK(s); return; }
+
+    if (!strcmp(rq.method, "OPTIONS")) {
+        static const char pre[] =
+            "HTTP/1.1 204 No Content\r\n"
+            "Access-Control-Allow-Origin: *\r\n"
+            "Access-Control-Allow-Headers: Content-Type, Authorization, X-Token, X-Client\r\n"
+            "Access-Control-Allow-Methods: GET, POST, OPTIONS\r\n"
+            "Access-Control-Max-Age: 600\r\n"
+            "Content-Length: 0\r\n"
+            "Connection: close\r\n\r\n";
+        send_all(s, pre, sizeof(pre) - 1);
+        if (rq.body) free(rq.body);
+        if (rq.headers) free(rq.headers);
+#ifdef _WIN32
+        shutdown(s, SD_SEND);
+#else
+        shutdown(s, SHUT_WR);
+#endif
+        CLOSESOCK(s);
+        return;
+    }
 
     if (getenv("APP_DEBUG")) log_write("[req] %s %s bearer=[%s] auth_hdr=[%s]", rq.method, rq.path, rq.bearer, "(hidden)");
     if (!strcmp(rq.path, "/api") || !strncasecmp(rq.path, "/api/", 5)) {

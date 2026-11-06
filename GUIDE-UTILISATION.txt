@@ -98,3 +98,32 @@
 --------------------------------------------------------
 Groupe Scolaire Les Théorèmes — Génie Zéralda, Alger
 +213 (0) 665 906 257 — lestheoremesetablissement@gmail.com
+
+
+================================================================
+ 7) DONNER UN COMPTE A UN PARENT (RESEAU)
+================================================================
+
+  IMPORTANT : l'adresse http://127.0.0.1/ ne fonctionne QUE sur
+  l'ordinateur de l'ecole. Un parent ne peut pas l'utiliser.
+
+  Sur le PC de l'ecole, lancez l'application avec --console
+  (invite de commandes) : la derniere ligne affiche
+
+      reseau local (a donner aux parents) : http://192.168.1.24:8765/
+
+  C'est l'adresse a envoyer au parent (par SMS / WhatsApp).
+  Elle n'est valable que si son telephone est connecte au MEME
+  Wi-Fi que l'ecole.
+
+  Si l'application est installee sur l'ordinateur du parent :
+    - ecran de connexion  ->  ouvrir « Serveur de l'ecole »
+    - saisir l'adresse (ex. 192.168.1.24:8765)
+    - appuyer sur « Tester » : « Serveur trouve » = c'est bon,
+      l'adresse est memorisee pour les fois suivantes.
+
+  Icone « Cet ordinateur » : revient au serveur local.
+
+  Rappel : la direction doit d'abord creer le compte (Comptes ->
+  Nouveau compte, avec l'enfant obligatoire) sinon la connexion
+  repond « identifiants incorrects ».

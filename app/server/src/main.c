@@ -13,7 +13,8 @@
 
 static sock_t g_listen = (sock_t)-1;
 int  g_port = 8765;
-static int g_bind_all = 0;      /* 1 : ecoute toutes les interfaces (developpement) */
+static int g_local_only = 0;    /* 1 : ecoute uniquement 127.0.0.1 (--local) */
+static char g_lan_ip[64];       /* adresse de la machine sur le reseau local */
 static char g_url[160];
 
 #ifdef _WIN32
@@ -50,10 +51,36 @@ static int start_server(int port)
     memset(&addr, 0, sizeof(addr));
     addr.sin_family = AF_INET;
     addr.sin_port = htons((unsigned short)port);
-    addr.sin_addr.s_addr = g_bind_all ? htonl(INADDR_ANY) : htonl(INADDR_LOOPBACK);
+    addr.sin_addr.s_addr = g_local_only ? htonl(INADDR_LOOPBACK) : htonl(INADDR_ANY);
     if (bind(g_listen, (struct sockaddr *)&addr, sizeof(addr)) != 0) { CLOSESOCK(g_listen); g_listen = (sock_t)-1; return -1; }
     if (listen(g_listen, 64) != 0) { CLOSESOCK(g_listen); g_listen = (sock_t)-1; return -1; }
     return 0;
+}
+
+/* adresse de cette machine sur le reseau local (ex. 192.168.1.24) :
+   on ouvre un socket UDP et on "connecte" une adresse publique : aucune
+   donnee n'est envoyee, cela force le systeme a choisir la bonne interface. */
+static void detect_lan_ip(void)
+{
+    struct sockaddr_in probe;
+    sock_t s = socket(AF_INET, SOCK_DGRAM, 0);
+    g_lan_ip[0] = 0;
+    if (s == (sock_t)-1) return;
+    memset(&probe, 0, sizeof(probe));
+    probe.sin_family = AF_INET;
+    probe.sin_port = htons(53);
+    probe.sin_addr.s_addr = htonl(0x08080808);   /* 8.8.8.8, rien n'est envoye */
+    if (connect(s, (struct sockaddr *)&probe, sizeof(probe)) == 0) {
+        struct sockaddr_in me;
+#ifdef _WIN32
+        int len = sizeof(me);
+#else
+        socklen_t len = sizeof(me);
+#endif
+        if (getsockname(s, (struct sockaddr *)&me, &len) == 0)
+            snprintf(g_lan_ip, sizeof(g_lan_ip), "%s", inet_ntoa(me.sin_addr));
+    }
+    CLOSESOCK(s);
 }
 
 static int bind_server(void)
@@ -167,6 +194,8 @@ static const char kWaitPage[] =
     "<!doctype html><html lang=fr><meta charset=utf-8>"
     "<script>"
     "function go(){"
+    "  try{var r=localStorage.getItem('lt_server');"
+    "      if(r&&APP.indexOf(r)<0){location.replace('http://'+r);return;}}catch(e){}"
     "  var x=new XMLHttpRequest();"
     "  x.open('GET',APP,true);"
     "  x.onreadystatechange=function(){if(x.readyState===4)location.replace(APP);};"
@@ -182,7 +211,12 @@ static const char kWaitPage[] =
     "border-radius:50%;animation:s .9s linear infinite\"></div>"
     "<p style=\"margin:18px 0 0;font-size:15px\">Les Th&eacute;or&egrave;mes</p>"
     "<p style=\"margin:6px 0 0;font-size:12px;color:#a1887f\">Ouverture de l'espace scolaire...</p>"
-    "<style>@keyframes s{to{transform:rotate(360deg)}}</style>";
+    "<p id=w style=\"margin:14px 0 0;font-size:11.5px;color:#bcaaa4\"></p>"
+    "<style>@keyframes s{to{transform:rotate(360deg)}}</style>"
+    "<script>setTimeout(function(){var e=document.getElementById('w');"
+    "try{if(localStorage.getItem('lt_server'))return;}catch(x){}"
+    "e.textContent=\"Si l'application reste ici : ouvrez le fichier avec Chrome ou Edge,\"+"
+    "\" ou donnez l'adresse du serveur de l'ecole dans l'application.\";},12000);</script>";
 
 static int write_file_all(const char *path, const char *data, int len)
 {
@@ -433,16 +467,24 @@ db_ready:
     if (port > 0) g_port = port;
     if (bind_server() != 0) return -1;
     snprintf(g_url, sizeof(g_url), "http://127.0.0.1:%d/", g_port);
+    detect_lan_ip();
     log_write("serveur : %s", g_url);
+    if (!g_local_only) {
+        if (g_lan_ip[0]) log_write("reseau local (a donner aux parents) : http://%s:%d/", g_lan_ip, g_port);
+        else             log_write("reseau local : adresse introuvable (pas de Wi-Fi / cable ?)");
+    } else {
+        log_write("mode local : accessible uniquement depuis cet ordinateur");
+    }
     return 0;
 }
 
 static void usage(void)
 {
     printf("%s %s\n", APP_NAME, APP_VERSION);
-    printf("usage: Les-Theoremes.exe [--port N] [--datadir DIR] [--console] [--no-window] [--bind-all]\n");
+    printf("usage: Les-Theoremes.exe [--port N] [--datadir DIR] [--console] [--no-window] [--local]\n");
     printf("  --console    affiche la console (diagnostic)\n");
     printf("  --no-window  demarre le serveur sans ouvrir la fenetre\n");
+    printf("  --local      accessible seulement depuis cet ordinateur (defaut : reseau de l'ecole)\n");
     printf("  --datadir    dossier des donnees (base + fichiers)\n");
 }
 
@@ -464,7 +506,8 @@ int WINAPI WinMain(HINSTANCE inst, HINSTANCE prev, LPSTR cmdline, int show)
         else if (!strcmp(a, "--port") && i + 1 < __argc) port = atoi(__argv[++i]);
         else if (!strcmp(a, "--console")) console = 1;
         else if (!strcmp(a, "--no-window") || !strcmp(a, "--no-browser")) open_win = 0;
-        else if (!strcmp(a, "--bind-all")) g_bind_all = 1;
+        else if (!strcmp(a, "--bind-all")) g_local_only = 0;   /* compatibilite */
+        else if (!strcmp(a, "--local")) g_local_only = 1;
         else if (!strcmp(a, "--help")) {
             AllocConsole();
             freopen("CONOUT$", "w", stdout);
@@ -532,7 +575,8 @@ int main(int argc, char **argv)
         else if (!strcmp(argv[i], "--port") && i + 1 < argc) port = atoi(argv[++i]);
         else if (!strcmp(argv[i], "--console") || !strcmp(argv[i], "--serve")) console = 1;
         else if (!strcmp(argv[i], "--no-window") || !strcmp(argv[i], "--no-browser")) open_win = 0;
-        else if (!strcmp(argv[i], "--bind-all")) g_bind_all = 1;
+        else if (!strcmp(argv[i], "--bind-all")) g_local_only = 0;
+        else if (!strcmp(argv[i], "--local")) g_local_only = 1;
         else if (!strcmp(argv[i], "--version")) { printf("%s\n", APP_VERSION); return 0; }
         else if (!strcmp(argv[i], "--help")) { usage(); return 0; }
     }

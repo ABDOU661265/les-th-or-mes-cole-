@@ -13,6 +13,23 @@ const state = {
   unread: 0
 };
 
+/* adresse du serveur : vide = celui de cet ordinateur (127.0.0.1).
+   Permet d'utiliser l'application depuis un autre PC du reseau de l'ecole. */
+const srv = {
+  get() { return localStorage.getItem("lt_server") || ""; },
+  set(v) { v ? localStorage.setItem("lt_server", v) : localStorage.removeItem("lt_server"); },
+  base() { const s = srv.get(); return s ? "http://" + s : ""; }
+};
+
+/* l'utilisateur saisit "192.168.1.24", "192.168.1.24:8765" ou l'adresse complete */
+function normalizeServer(v) {
+  let s = String(v || "").trim();
+  if (!s) return "";
+  s = s.replace(/^https?:\/\//i, "").replace(/\/+$/, "");
+  if (!/:\d+$/.test(s)) s += ":8765";
+  return s;
+}
+
 const $ = (sel, root) => (root || document).querySelector(sel);
 const $$ = (sel, root) => Array.from((root || document).querySelectorAll(sel));
 
@@ -23,7 +40,7 @@ async function api(path, opts) {
   if (state.token) headers["Authorization"] = "Bearer " + state.token;
   let res, data;
   try {
-    res = await fetch("/api" + path, {
+    res = await fetch(srv.base() + "/api" + path, {
       method: opts.method || (opts.body ? "POST" : "GET"),
       headers,
       body: opts.body ? JSON.stringify(opts.body) : undefined
@@ -949,10 +966,48 @@ function bindEvents() {
       });
       await afterLogin(data);
     } catch (err) {
-      showLoginError(err.message || errText(err.code));
+      const hint = explainNetworkError(err);
+      showLoginError(hint || err.message || errText(err.code));
     } finally {
       btn.disabled = false;
     }
+  });
+
+  $("#srv-url").addEventListener("change", () => {
+    srv.set(normalizeServer($("#srv-url").value));
+    $("#srv-url").value = srv.get();
+    $("#srv-status").textContent = "";
+    applyServerAssets();
+  });
+
+  $("#srv-test").addEventListener("click", async () => {
+    const before = srv.get();
+    const candidate = normalizeServer($("#srv-url").value);
+    const status = $("#srv-status");
+    status.textContent = t("srv_testing");
+    try {
+      const r = await fetch("http://" + candidate + "/api/config", { cache: "no-store" });
+      const d = await r.json();
+      if (d && d.ok) {
+        srv.set(candidate);
+        $("#srv-url").value = candidate;
+        status.textContent = t("srv_ok") + (d.school_name ? " (" + d.school_name + ")" : "");
+        applyServerAssets();
+      } else {
+        srv.set(before);
+        status.textContent = t("srv_bad");
+      }
+    } catch (e) {
+      srv.set(before);
+      status.textContent = t("srv_bad");
+    }
+  });
+
+  $("#srv-default").addEventListener("click", () => {
+    srv.set("");
+    $("#srv-url").value = "";
+    $("#srv-status").textContent = t("srv_local_ok");
+    applyServerAssets();
   });
 
   $("#pw-toggle").addEventListener("click", () => {
@@ -984,10 +1039,39 @@ function bindEvents() {
   });
 }
 
+/* les images de l'ecran de connexion viennent du meme serveur */
+function applyServerAssets() {
+  const b = srv.base();
+  if (!b) return;
+  $$("img[src^='logo.png'], link[rel='icon'][href='logo.png']").forEach(el => {
+    const attr = el.tagName === "LINK" ? "href" : "src";
+    if (!el.dataset.local) { el.dataset.local = "1"; el.setAttribute(attr, b + "/logo.png"); }
+  });
+}
+
+/* un message clair quand le serveur ne repond pas du tout */
+function explainNetworkError(err) {
+  if (err && err.code === "network") {
+    return srv.get()
+      ? t("server_unreachable").replace("{srv}", srv.get())
+      : t("server_unreachable_local");
+  }
+  return null;
+}
+
 async function init() {
   applyLang(LANG);
   bindEvents();
-  try { state.config = await api("/config"); } catch (e) { state.config = {}; }
+  applyServerAssets();
+  if (srv.get()) $("#srv-url").value = srv.get();
+  try { state.config = await api("/config"); }
+  catch (e) {
+    state.config = {};
+    if (e && e.code === "network") {
+      $("#srv-box").open = true;
+      showLoginError(explainNetworkError(e));
+    }
+  }
   if (state.token) await boot();
   else { $("#screen-login").hidden = false; }
   setInterval(() => { if (state.token) refreshUnread(); }, 45000);
