@@ -1,0 +1,17 @@
+# artefacts de compilation
+*.o
+*.obj
+*.res
+*.pdb
+*.lib
+app/.work/
+app/server/src/assets.c
+node_modules/
+
+# données locales (base SQLite générée au premier lancement)
+data/
+*.db
+*.db-wal
+*.db-shm
+
+# NOTE : app/release/ contient le .exe livrable, volontairement versionné.

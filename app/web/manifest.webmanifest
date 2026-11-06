@@ -1,0 +1,15 @@
+{
+  "name": "Les Théorèmes — Espace scolaire",
+  "short_name": "Les Théorèmes",
+  "description": "Application officielle du Groupe Scolaire Les Théorèmes (Génie Zéralda, Alger) : notes, absences, devoirs, emploi du temps, annonces.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f4f5f7",
+  "theme_color": "#ef6c00",
+  "lang": "fr",
+  "icons": [
+    { "src": "logo.png", "sizes": "640x367", "type": "image/png", "purpose": "any" }
+  ]
+}

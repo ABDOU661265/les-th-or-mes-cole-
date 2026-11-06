@@ -1,0 +1,95 @@
+========================================================
+   LES THÉORÈMES — ESPACE SCOLAIRE
+   Guide d'utilisation (direction, modérateurs, parents)
+========================================================
+
+1. INSTALLER
+------------
+- Copier le fichier « Les-Theoremes.exe » dans un dossier de l'ordinateur,
+  par exemple  C:\Les Theoremes\
+- Double-cliquer dessus. L'application s'ouvre dans sa propre fenêtre.
+- Une icône reste dans la zone de notification (près de l'heure) :
+    * double-clic  = ouvrir l'application
+    * clic droit   = menu (Ouvrir / dossier des données / A propos / Quitter)
+- Aucune connexion Internet n'est nécessaire : tout est sur l'ordinateur.
+
+2. PREMIÈRE CONNEXION (direction)
+---------------------------------
+  E-mail          : admin@lestheoremes.dz
+  Mot de passe    : Admin@2026
+
+  >>> Menu « Compte »  ->  « Changer le mot de passe »  (à faire tout de suite)
+
+  Comptes de démonstration à supprimer ou désactiver ensuite :
+    moderateur@lestheoremes.dz / Modo@2026
+    parent@lestheoremes.dz     / Parent@2026
+
+3. CRÉER LE COMPTE D'UN PARENT
+------------------------------
+  1) Menu « Comptes »  ->  Créer un compte
+     - Rôle : Parent
+     - Prénom, Nom, e-mail, téléphone
+     - Mot de passe provisoire : 8 caractères minimum,
+       avec au moins une MAJUSCULE, une minuscule et un chiffre
+       (exemple : Theoremes2026)
+  2) Menu « Élèves »  ->  Ajouter un élève : choisir le parent,
+     saisir le prénom/nom de l'enfant, son niveau (Préscolaire,
+     Primaire, Collège) et sa classe (ex. 3AP, 1AM), le bus si besoin.
+  3) Donner au parent son e-mail et son mot de passe provisoire.
+     Il le changera à la première connexion.
+
+  Un parent ne voit QUE ses propres enfants.
+  Il n'existe pas d'inscription libre : c'est l'école qui crée les comptes.
+
+4. DONNER UN PEU PLUS DE DROITS (modérateur)
+-------------------------------------------
+  Menu « Comptes »  ->  Rôle : Modérateur
+  Un modérateur peut : publier des annonces, donner des devoirs,
+  signaler des absences, marquer des frais comme payés, créer des
+  comptes PARENTS. Il ne peut pas créer d'autres modérateurs ni
+  supprimer un compte : seul l'admin (la direction) le peut.
+
+5. PUBLIER UNE ANNONCE
+----------------------
+  Menu « Annonces » -> Nouvelle annonce
+  Trois champs de titre et trois champs de texte : FR / AR / EN.
+  L'application affiche automatiquement la langue choisie par le lecteur.
+  Cocher « Confirmer (★) » pour épingler en haut de la liste.
+
+6. DEVOIRS, EMPLOI DU TEMPS, ABSENCES, FRAIS
+--------------------------------------------
+  - Devoirs        : classe + matière + titre (FR/AR/EN) + date de remise
+  - Emploi du temps: déjà rempli pour 3AP et 1AM (modifiable dans la base)
+  - Absences       : ID de l'élève (visible dans « Élèves »), date, motif
+  - Frais          : « Payé » / « À payer » d'un clic (les parents voient le total)
+
+7. CHANGER LA LANGUE
+--------------------
+  Bouton « FR / ع / EN » en haut à droite (ou sur l'écran de connexion).
+  En arabe, toute l'application passe de droite à gauche.
+
+8. SAUVEGARDER LES DONNÉES
+--------------------------
+  Toutes les données sont dans le dossier de l'application :
+  fichier « school.db ».
+  -> Clic droit sur l'icône de la notification : « Ouvrir le dossier des données »
+  -> Copier « school.db » sur une clé USB (sauvegarde) quand l'application est fermée.
+
+9. QUITTER
+----------
+  Clic droit sur l'icône de la notification  ->  « Quitter ».
+  (Fermer la fenêtre ne suffit pas : le serveur continue en arrière-plan.)
+
+10. EN CAS DE PROBLÈME
+----------------------
+  - L'application ne s'ouvre pas : lancer en ligne de commande
+        Les-Theoremes.exe --console
+    pour voir les messages.
+  - « Windows a protégé votre PC » : Informations complémentaires ->
+    Exécuter quand même (programme non signé numériquement).
+  - Mot de passe oublié : l'admin ouvre « Comptes » -> « Nouveau mot de passe »
+    pour le compte concerné.
+
+--------------------------------------------------------
+Groupe Scolaire Les Théorèmes — Génie Zéralda, Alger
++213 (0) 665 906 257 — lestheoremesetablissement@gmail.com
