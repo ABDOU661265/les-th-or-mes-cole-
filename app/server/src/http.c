@@ -4,6 +4,8 @@
 
 #define MAX_BODY (4 * 1024 * 1024)
 
+static const char *http_date(void);   /* definie plus bas */
+
 static void send_all(sock_t s, const char *d, size_t n)
 {
     size_t off = 0;
@@ -43,7 +45,9 @@ void http_send_cache(request_t *rq, int status, const char *mime, const char *da
                  "HTTP/1.1 %d %s\r\n"
                  "Content-Type: %s\r\n"
                  "Content-Length: %lu\r\n"
+                 "Date: %s\r\n"
                  "%s"
+                 "Server: LesTheoremes/1.0\r\n"
                  "Access-Control-Allow-Origin: *\r\n"
                  "Access-Control-Allow-Headers: Content-Type, Authorization, X-Token, X-Client\r\n"
                  "Access-Control-Allow-Methods: GET, POST, OPTIONS\r\n"
@@ -51,7 +55,7 @@ void http_send_cache(request_t *rq, int status, const char *mime, const char *da
                  "X-Frame-Options: SAMEORIGIN\r\n"
                  "Referrer-Policy: no-referrer\r\n"
                  "Connection: close\r\n\r\n",
-                 status, reason, mime, (unsigned long)len,
+                 status, reason, mime, (unsigned long)len, http_date(),
                  (cache_hdr && cache_hdr[0]) ? cache_hdr :
                  "Cache-Control: no-store\r\n");
     send_all(rq->sock, head, (size_t)n);
@@ -73,6 +77,30 @@ void http_error(request_t *rq, int status, const char *code)
     cJSON_AddStringToObject(o, "error", code);
     http_json(rq, status, o);
     cJSON_Delete(o);
+}
+
+/* date au format HTTP (RFC 1123) : chaque reponse bien formee en contient une */
+static const char *http_date(void)
+{
+    static char buf[40];
+    static time_t last = 0;
+    static const char *days[] = { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };
+    static const char *mons[] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+                                  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
+    time_t now = time(NULL);
+    if (now != last) {
+        struct tm tmv;
+        last = now;
+#ifdef _WIN32
+        gmtime_s(&tmv, &now);
+#else
+        tmv = *gmtime(&now);
+#endif
+        snprintf(buf, sizeof(buf), "%s, %02d %s %04d %02d:%02d:%02d GMT",
+                 days[tmv.tm_wday], tmv.tm_mday, mons[tmv.tm_mon],
+                 tmv.tm_year + 1900, tmv.tm_hour, tmv.tm_min, tmv.tm_sec);
+    }
+    return buf;
 }
 
 static const char *mime_of(const char *path)

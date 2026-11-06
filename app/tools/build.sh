@@ -42,7 +42,10 @@ if [ "$TARGET" = "windows" ] || [ "$TARGET" = "installer" ]; then
   fi
   ( cd "$ROOT/packaging" && "$ZIG" rc /fo "$ROOT/.work/app.res" app.rc )
   OUT="$DIST/Les-Theoremes.exe"
+  # Options de liaison choisies pour reduire les fausses alertes antivirus :
+  #  ASLR + DEP complets : l'executable ne peut pas etre detourne facilement
   "$ZIG" cc -target x86_64-windows-gnu -O2 -Wl,--subsystem,windows \
+    -Wl,--dynamicbase -Wl,--nxcompat -Wl,--high-entropy-va \
     -I "$VENDOR" -I "$SRC" "${SOURCES[@]}" \
     "$ROOT/.work/sqlite3.obj" "$ROOT/.work/app.res" \
     -o "$OUT" -lws2_32 -lshell32 -lole32 -luuid -ladvapi32 -lgdi32 -luser32 -lcomdlg32
@@ -54,6 +57,7 @@ if [ "$TARGET" = "windows" ] || [ "$TARGET" = "installer" ]; then
     cp "$OUT" "$PKG/"
     cp "$ROOT/../README.md" "$PKG/" 2>/dev/null || true
     cp "$ROOT/../GUIDE-UTILISATION.txt" "$PKG/" 2>/dev/null || true
+    cp "$ROOT/packaging/ANTIVIRUS.md" "$PKG/" 2>/dev/null || true
     if command -v zip >/dev/null 2>&1; then
       rm -f "$DIST/Les-Theoremes-Windows-$VERSION.zip"
       (cd "$DIST" && zip -q -r "Les-Theoremes-Windows-$VERSION.zip" "Les-Theoremes-Windows")

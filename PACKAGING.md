@@ -18,6 +18,12 @@ Le serveur n'écoute que sur `127.0.0.1` (option `--bind-all` pour un usage rés
 en développement). La fenêtre de l'application est ouverte via Edge/Chrome en mode
 `--app=`, avec repli sur le navigateur par défaut.
 
+### Antivirus (Defender, AVG, Avast…) : faux positifs
+
+Voir le document dédié **`app/packaging/ANTIVIRUS.md`** : pourquoi un exécutable
+non signé est signalé, les adresses de soumission (Microsoft, AVG, Avast, ESET,
+Kaspersky, Bitdefender), la procédure de signature et les exclusions à poser.
+
 ### Signature (recommandé pour une distribution officielle)
 
 ```powershell

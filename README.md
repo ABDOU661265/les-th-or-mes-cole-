@@ -147,7 +147,32 @@ Le programme assemble : un serveur HTTP/SQLite en C (~5 000 lignes),
 l'interface (HTML/CSS/JS sans dépendance, ~1 500 lignes) **embarquée dans
 l'exécutable**, et SQLite + cJSON (domaine public / MIT) compilés statiquement.
 
-## 6. Signature et avertissement SmartScreen
+## 6. Antivirus : faux positifs et signature
+
+> **Le programme ne contient aucun code viral** (aucune injection, aucun accès au
+> registre, aucun démarrage automatique, aucune connexion vers Internet). Il est
+> simplement **nouveau et non signé** : Defender et AVG le signalent par
+> précaution, faute de réputation.
+> Démarche complète, adresses de soumission et signature : **`app/packaging/ANTIVIRUS.md`**.
+
+Trois actions, dans cet ordre :
+
+1. **Déclarer le fichier comme sûr** chez Microsoft
+   (<https://www.microsoft.com/en-us/wdsi/filesubmission>, profil *Developer*) et
+   chez AVG (<https://www.avg.com/false-positive-file-form>) — gratuit, 24 à 72 h,
+   à refaire à chaque version.
+2. **Signer l'exécutable** avec un certificat de signature de code (OV ≈ 200-400 €/an,
+   EV ≈ 400-700 €/an pour une réputation immédiate) :
+   `signtool sign /fd SHA256 /tr http://timestamp.digicert.com /td SHA256 /f certificat.pfx Les-Theoremes.exe`
+3. **Ne distribuer le `.exe` qu'aux 1 ou 2 postes de l'école** ; les parents
+   reçoivent seulement le lien `http://192.168.x.x:8765/` → aucun antivirus à gérer.
+
+Déjà appliqué dans le binaire : manifeste Windows (`asInvoker`, Windows 7→11),
+ASLR + DEP + haute entropie, aucune section RWX, journal de démarrage lisible,
+réponses HTTP complètes. Empreinte à communiquer :
+`certutil -hashfile Les-Theoremes.exe SHA256`.
+
+### Avertissement SmartScreen au premier lancement
 
 L'exécutable n'est pas signé. Windows SmartScreen peut afficher un avertissement
 au premier lancement ; c'est normal pour un programme non signé. Pour le faire

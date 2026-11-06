@@ -127,3 +127,45 @@ Groupe Scolaire Les Théorèmes — Génie Zéralda, Alger
   Rappel : la direction doit d'abord creer le compte (Comptes ->
   Nouveau compte, avec l'enfant obligatoire) sinon la connexion
   repond « identifiants incorrects ».
+
+
+================================================================
+ 8) WINDOWS OU AVG DIT QUE LE PROGRAMME EST UN VIRUS
+================================================================
+
+  C'est une FAUSSE ALERTE. Le programme ne contient aucun virus :
+   - il ne se connecte jamais a Internet
+   - il ne modifie pas le systeme (ni registre, ni demarrage auto)
+   - il ne s'installe pas dans Windows
+
+  Windows (Defender) et AVG signalent tout programme RECENT et NON
+  SIGNE : ils ne le connaissent pas encore, donc ils bloquent.
+
+  POUR INSTALLER MALGRE L'ALERTE :
+
+   Windows Defender
+     1. quand la fenetre bleue apparait : "Plus d'informations"
+     2. puis "Executer quand meme"
+     Si le fichier a ete supprime :
+     3. Securite Windows -> Protection contre les virus ->
+        Historique des menaces -> Actions -> Autoriser sur l'appareil
+
+   AVG / Avast
+     1. Menu -> Parametres -> General -> Exceptions
+     2. "Ajouter une exception" -> choisir Les-Theoremes.exe
+     (ou dans la quarantaine : "Restaurer et ajouter a la liste d'exceptions")
+
+   AJOUTER LE DOSSIER EN EXCLUSION (recommande, une seule fois)
+     Securite Windows -> Virus et menace -> Gerer les parametres ->
+     Exclusions -> Ajouter une exclusion -> Dossier -> C:\LesTheoremes
+
+  EVITER LE PROBLEME POUR LES PARENTS :
+     N'installez le programme que sur le PC de l'ecole.
+     Donnez aux parents uniquement l'adresse reseau (voir chapitre 7) :
+     ils n'ont alors AUCUN fichier a telecharger, donc aucun antivirus
+     a gerer.
+
+  POUR FAIRE DISPARAITRE L'ALERTE DEFINITIVEMENT :
+     - declarer le fichier comme sain chez Microsoft (gratuit, 24-72 h)
+     - ou acheter un certificat de signature de code (signature numerique)
+     Voir le fichier app/packaging/ANTIVIRUS.md

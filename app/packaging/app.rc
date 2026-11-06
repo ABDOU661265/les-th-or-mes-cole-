@@ -1,7 +1,12 @@
 #include <winver.h>
 
+/* --- icone de l'application (1 = utilisee aussi par la zone de notification) --- */
 1 ICON "app.ico"
 
+/* --- manifeste : application normale, sans droits admin, Windows 10/11 --- */
+1 24 "app.manifest"
+
+/* --- informations de version (un exe sans version est plus suspecte) --- */
 VS_VERSION_INFO VERSIONINFO
  FILEVERSION 1,0,0,0
  PRODUCTVERSION 1,0,0,0
@@ -23,6 +28,7 @@ BEGIN
             VALUE "OriginalFilename", "Les-Theoremes.exe"
             VALUE "ProductName", "Les Theoremes"
             VALUE "ProductVersion", "1.0.0.0"
+            VALUE "Comments", "Application scolaire - serveur local et interface"
         END
     END
     BLOCK "VarFileInfo"

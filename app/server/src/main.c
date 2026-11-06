@@ -468,6 +468,28 @@ db_ready:
     if (bind_server() != 0) return -1;
     snprintf(g_url, sizeof(g_url), "http://127.0.0.1:%d/", g_port);
     detect_lan_ip();
+    {
+        /* trace de demarrage : date, version, port et adresse reseau */
+        char jpath[1200];
+        FILE *jf;
+        snprintf(jpath, sizeof(jpath), "%s/journal.txt", g_datadir);
+        jf = fopen(jpath, "a");
+        if (jf) {
+            time_t now = time(NULL);
+            struct tm tmv;
+            char stamp[32] = "";
+#ifdef _WIN32
+            localtime_s(&tmv, &now);
+#else
+            tmv = *localtime(&now);
+#endif
+            strftime(stamp, sizeof(stamp), "%Y-%m-%d %H:%M:%S", &tmv);
+            fprintf(jf, "%s  %s %s  port=%d  reseau=%s\n",
+                    stamp, APP_NAME, APP_VERSION, g_port,
+                    g_lan_ip[0] && !g_local_only ? g_lan_ip : "local");
+            fclose(jf);
+        }
+    }
     log_write("serveur : %s", g_url);
     if (!g_local_only) {
         if (g_lan_ip[0]) log_write("reseau local (a donner aux parents) : http://%s:%d/", g_lan_ip, g_port);
@@ -534,6 +556,7 @@ int WINAPI WinMain(HINSTANCE inst, HINSTANCE prev, LPSTR cmdline, int show)
     if (!datadir[0]) resolve_datadir(datadir, sizeof(datadir));
 
     log_write("%s %s", APP_NAME, APP_VERSION);
+    if (!datadir[0]) log_write("[app] dossier de donnees par defaut");
     if (app_init(datadir, port) != 0) {
         MessageBoxA(NULL, "Impossible de demarrer le serveur local (port occupe ou dossier non accessible).",
                     "Les Theoremes", MB_OK | MB_ICONERROR);
@@ -584,6 +607,7 @@ int main(int argc, char **argv)
 
     if (!datadir[0]) resolve_datadir(datadir, sizeof(datadir));
     log_write("%s %s", APP_NAME, APP_VERSION);
+    if (!datadir[0]) log_write("[app] dossier de donnees par defaut");
     if (app_init(datadir, port) != 0) { log_write("demarrage impossible"); return 1; }
     if (open_win) open_app_window();
     serve_loop();
