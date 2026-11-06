@@ -313,6 +313,13 @@ static void route_change_password(request_t *rq)
     cJSON *rows;
     int idx;
     if (!load_ctx(rq, &c, NULL)) return;
+    /* un parent ne change pas son mot de passe lui-meme :
+       seule la direction (ou un moderateur) peut lui en redonner un */
+    if (!strcmp(c.role, "parent")) {
+        http_error(rq, 403, "password_admin_only");
+        free_ctx(&c); free((void *)c.role); free((void *)c.email);
+        return;
+    }
     oldp = js(c.body, "old", "");
     newp = js(c.body, "new", "");
     if (!pw_strong_enough(newp, whybuf, sizeof(whybuf))) {
@@ -348,7 +355,10 @@ static void route_users_list(request_t *rq)
     ctx_t c;
     cJSON *rows, *o;
     if (!load_ctx(rq, &c, "admin,moderator")) return;
-    rows = db_query("SELECT id,email,role,first_name,last_name,phone,active,must_change,created_at,last_login"
+    rows = db_query("SELECT id,email,role,first_name,last_name,phone,active,must_change,created_at,last_login,"
+                    " (SELECT s.first_name || ' ' || s.last_name FROM students s WHERE s.parent_id=users.id"
+                    "   ORDER BY s.id LIMIT 1) AS child_name,"
+                    " (SELECT COUNT(*) FROM students s WHERE s.parent_id=users.id) AS child_count"
                     " FROM users ORDER BY role DESC, last_name", 0, NULL);
     o = cJSON_CreateObject();
     cJSON_AddBoolToObject(o, "ok", 1);
@@ -358,14 +368,20 @@ static void route_users_list(request_t *rq)
     free_ctx(&c); free((void *)c.role); free((void *)c.email);
 }
 
+/* ------------------------------------------------------------------
+   creation d'un compte par la direction
+   - role parent  : un eleve est OBLIGATOIRE (sinon le parent ne verrait rien)
+   - tout se fait dans une seule transaction : soit tout, soit rien
+   ------------------------------------------------------------------ */
 static void route_users_create(request_t *rq)
 {
     ctx_t c;
     char email[160], hash[256], ts[32], id[24];
     const char *role, *fn, *ln, *phone, *pw;
+    const char *kfn, *kln, *level, *cls;
     char whybuf[48] = "";
-    const char *p[8];
-    sqlite3_int64 newid;
+    const char *p[9];
+    sqlite3_int64 newid, kid = 0;
     cJSON *o;
     if (!load_ctx(rq, &c, "admin,moderator")) return;
     role = js(c.body, "role", "parent");
@@ -394,6 +410,16 @@ static void route_users_create(request_t *rq)
         free_ctx(&c); free((void *)c.role); free((void *)c.email);
         return;
     }
+    /* un compte parent doit obligatoirement avoir au moins un enfant */
+    kfn = js(c.body, "child_first_name", "");
+    kln = js(c.body, "child_last_name", "");
+    level = js(c.body, "child_level", "");
+    cls = js(c.body, "child_class", "");
+    if (!strcmp(role, "parent") && (!kfn[0] || !kln[0] || (!level[0] && !cls[0]))) {
+        http_error(rq, 400, "child_required");
+        free_ctx(&c); free((void *)c.role); free((void *)c.email);
+        return;
+    }
     if (!pw_strong_enough(pw, whybuf, sizeof(whybuf))) {
         http_error(rq, 400, whybuf);
         free_ctx(&c); free((void *)c.role); free((void *)c.email);
@@ -408,18 +434,50 @@ static void route_users_create(request_t *rq)
     password_hash(pw, hash, sizeof(hash));
     date_str(ts, sizeof(ts), time(NULL));
     snprintf(id, sizeof(id), "%lld", (long long)c.uid);
+
+    db_exec("BEGIN");
+    /* must_change seulement pour le personnel : un parent ne change pas son mot de passe */
     p[0] = email; p[1] = hash; p[2] = role; p[3] = fn; p[4] = ln; p[5] = phone; p[6] = ts; p[7] = id;
+    p[8] = strcmp(role, "parent") ? "1" : "0";
     newid = db_exec_params("INSERT INTO users(email,pass,role,first_name,last_name,phone,created_at,created_by,must_change)"
-                           " VALUES(?,?,?,?,?,?,?,CAST(?8 AS INTEGER),1)", 8, p);
+                           " VALUES(?,?,?,?,?,?,?,CAST(?8 AS INTEGER),CAST(?9 AS INTEGER))", 9, p);
     if (newid < 0) {
+        db_exec("ROLLBACK");
         http_error(rq, 500, "internal");
         free_ctx(&c); free((void *)c.role); free((void *)c.email);
         return;
     }
+
+    /* l'enfant est cree tout de suite, rattache a ce parent */
+    if (!strcmp(role, "parent")) {
+        char pid[24];
+        snprintf(pid, sizeof(pid), "%lld", (long long)newid);
+        p[0] = pid;
+        p[1] = kfn;
+        p[2] = kln;
+        p[3] = level;
+        p[4] = cls;
+        p[5] = ts;
+        kid = db_exec_params("INSERT INTO students(parent_id,first_name,last_name,level,class_name,created_at)"
+                             " VALUES(CAST(?1 AS INTEGER),?,?,?,?,?)", 6, p);
+        if (kid < 0) {
+            db_exec("ROLLBACK");
+            http_error(rq, 500, "internal");
+            free_ctx(&c); free((void *)c.role); free((void *)c.email);
+            return;
+        }
+    }
+    db_exec("COMMIT");
+
     audit(c.uid, "user_create", email);
+    if (kid > 0) audit(c.uid, "student_create", kfn);
     o = cJSON_CreateObject();
     cJSON_AddBoolToObject(o, "ok", 1);
     cJSON_AddNumberToObject(o, "id", (double)newid);
+    if (kid > 0) {
+        cJSON_AddNumberToObject(o, "student_id", (double)kid);
+        cJSON_AddStringToObject(o, "child_name", kfn);
+    }
     http_json(rq, 201, o);
     cJSON_Delete(o);
     free_ctx(&c); free((void *)c.role); free((void *)c.email);

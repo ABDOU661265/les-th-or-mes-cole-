@@ -161,26 +161,79 @@ static void local_app_dir(char *out, size_t cap)
     CreateDirectoryA(out, NULL);
 }
 
+/* la fenetre s'ouvre tout de suite : la page attend le serveur et se
+   rafraichit seule (evite les 2 a 5 secondes de page blanche) */
+static const char kWaitPage[] =
+    "<!doctype html><html lang=fr><meta charset=utf-8>"
+    "<script>"
+    "function go(){"
+    "  var x=new XMLHttpRequest();"
+    "  x.open('GET',APP,true);"
+    "  x.onreadystatechange=function(){if(x.readyState===4)location.replace(APP);};"
+    "  try{x.send();}catch(e){}"
+    "}"
+    "window.onload=function(){go();setInterval(go,900);};"
+    "</script>"
+    "<title>Les Theoremes</title>"
+    "<body style=\"margin:0;height:100vh;display:flex;flex-direction:column;"
+    "align-items:center;justify-content:center;font-family:Segoe UI,sans-serif;"
+    "background:#fff7f0;color:#5d4037\">"
+    "<div style=\"width:34px;height:34px;border:4px solid #ffe0c2;border-top-color:#ef6c00;"
+    "border-radius:50%;animation:s .9s linear infinite\"></div>"
+    "<p style=\"margin:18px 0 0;font-size:15px\">Les Th&eacute;or&egrave;mes</p>"
+    "<p style=\"margin:6px 0 0;font-size:12px;color:#a1887f\">Ouverture de l'espace scolaire...</p>"
+    "<style>@keyframes s{to{transform:rotate(360deg)}}</style>";
+
+static int write_file_all(const char *path, const char *data, int len)
+{
+    FILE *f = fopen(path, "wb");
+    if (!f) return 0;
+    fwrite(data, 1, (size_t)len, f);
+    fclose(f);
+    return 1;
+}
+
 static int open_app_window(void)
 {
     char exe[MAX_PATH];
     char args[1200];
     char profile[1024];
+    char page[1100];
     STARTUPINFOA si;
     PROCESS_INFORMATION pi;
-
-    if (!find_browser(exe, sizeof(exe))) return shell_open(g_url);
+    const char *url = g_url;
 
     local_app_dir(profile, sizeof(profile));
+    /* petite page d'attente locale, reutilisee d'un lancement a l'autre */
+    snprintf(page, sizeof(page), "%s\\demarrage.html", profile);
+    {
+        char full[2400];
+        int n = snprintf(full, sizeof(full), "<script>var APP=%c%s%c;</script>", 34, g_url, 34);
+        n += snprintf(full + n, sizeof(full) - (size_t)n, "%s", kWaitPage);
+        if (!write_file_all(page, full, n)) page[0] = 0;
+    }
+    if (page[0]) {
+        static char fileurl[1200];
+        snprintf(fileurl, sizeof(fileurl), "file:///%s", page);
+        {
+            char *c;
+            for (c = fileurl; *c; c++) if (*c == '\\') *c = '/';
+        }
+        url = fileurl;
+    }
+
+    if (!find_browser(exe, sizeof(exe))) return shell_open(url);
+
     snprintf(args, sizeof(args),
              "\"%s\" --app=%s --window-size=470,880 --window-position=120,40 "
-             "--user-data-dir=\"%s\\ui\" --no-first-run --no-default-browser-check",
-             exe, g_url, profile);
+             "--user-data-dir=\"%s\\ui\" --no-first-run --no-default-browser-check "
+             "--disable-features=Translate,ChromeWhatsNewUI",
+             exe, url, profile);
     memset(&si, 0, sizeof(si));
     si.cb = sizeof(si);
     memset(&pi, 0, sizeof(pi));
     if (!CreateProcessA(NULL, args, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi)) {
-        return shell_open(g_url);
+        return shell_open(url);
     }
     CloseHandle(pi.hThread);
     CloseHandle(pi.hProcess);
@@ -451,11 +504,11 @@ int WINAPI WinMain(HINSTANCE inst, HINSTANCE prev, LPSTR cmdline, int show)
     }
 
     tray_install();
+    if (open_win) open_app_window();
     {
         HANDLE th = CreateThread(NULL, 0, server_thread, NULL, 0, NULL);
         if (th) CloseHandle(th);
     }
-    if (open_win) open_app_window();
     {
         MSG msg;
         while (GetMessageA(&msg, NULL, 0, 0) > 0) {

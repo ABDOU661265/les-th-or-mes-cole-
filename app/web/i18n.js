@@ -73,7 +73,14 @@ const I18N = {
     unpaid_count: "facture(s) en attente",
     pending: "en attente",
     no_child: "Aucun élève rattaché à ce compte.",
-    switch_lang: "Langue"
+    switch_lang: "Langue",
+    password_locked_title: "Mot de passe géré par l'école",
+    password_locked: "Pour des raisons de sécurité, un parent ne peut pas modifier son mot de passe. Contactez la direction : elle vous en remettra un nouveau.",
+    password_admin_only: "Seule la direction peut changer le mot de passe d'un parent.",
+    child_required_title: "Enfant rattaché (obligatoire)",
+    child_required: "Un compte parent doit avoir au moins un enfant : indiquez son prénom, son nom et sa classe.",
+    created_with_child: "Compte créé — enfant {child} rattaché.",
+    level: "Niveau",
   },
 
   ar: {
@@ -149,7 +156,14 @@ const I18N = {
     unpaid_count: "فاتورة في الانتظار",
     pending: "في الانتظار",
     no_child: "لا يوجد تلميذ مرتبط بهذا الحساب.",
-    switch_lang: "اللغة"
+    switch_lang: "اللغة",
+    password_locked_title: "كلمة المرور تدار من طرف المدرسة",
+    password_locked: "لأسباب أمنية، لا يمكن لولي التلميذ تغيير كلمة مروره. اتصل بالإدارة وستمنحك كلمة مرور جديدة.",
+    password_admin_only: "الإدارة فقط يمكنها تغيير كلمة مرور الولي.",
+    child_required_title: "التلميذ المرتبط (إجباري)",
+    child_required: "حساب الولي يجب أن يرتبط بتلميذ واحد على الأقل: اذكر الاسم واللقب والقسم.",
+    created_with_child: "تم إنشاء الحساب — التلميذ {child} مرتبط.",
+    level: "المستوى",
   },
 
   en: {
@@ -225,7 +239,14 @@ const I18N = {
     unpaid_count: "pending invoice(s)",
     pending: "pending",
     no_child: "No student linked to this account.",
-    switch_lang: "Language"
+    switch_lang: "Language",
+    password_locked_title: "Password managed by the school",
+    password_locked: "For security reasons, a parent cannot change their own password. Please contact the school office and they will give you a new one.",
+    password_admin_only: "Only the school office can change a parent's password.",
+    child_required_title: "Linked child (required)",
+    child_required: "A parent account must have at least one child: enter the first name, last name and class.",
+    created_with_child: "Account created — child {child} linked.",
+    level: "Level",
   }
 };
 
@@ -242,7 +263,9 @@ const ERRORS = {
   email_taken: "email_taken",
   forbidden: "role_not_allowed",
   role_not_allowed: "role_not_allowed",
-  account_disabled: "no_account_yet"
+  account_disabled: "no_account_yet",
+  password_admin_only: "password_admin_only",
+  child_required: "child_required"
 };
 
 let LANG = localStorage.getItem("lt_lang") || "fr";

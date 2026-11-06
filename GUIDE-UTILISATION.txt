@@ -32,7 +32,12 @@
      - Mot de passe provisoire : 8 caractères minimum,
        avec au moins une MAJUSCULE, une minuscule et un chiffre
        (exemple : Theoremes2026)
-  2) Menu « Élèves »  ->  Ajouter un élève : choisir le parent,
+  2) Dans « Nouveau compte », choisir le rôle Parent fait apparaître le bloc
+     « Enfant rattaché (obligatoire) » : prénom, nom et classe de l'enfant.
+     Sans enfant, le compte est refusé (un parent sans enfant ne verrait rien).
+     Le compte ET l'enfant sont créés d'un seul coup.
+     (Le menu « Élèves » sert ensuite à ajouter un frère ou une sœur.)
+     Ancienne étape, si besoin :
      saisir le prénom/nom de l'enfant, son niveau (Préscolaire,
      Primaire, Collège) et sa classe (ex. 3AP, 1AM), le bus si besoin.
   3) Donner au parent son e-mail et son mot de passe provisoire.

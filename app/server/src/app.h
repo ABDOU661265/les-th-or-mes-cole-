@@ -104,6 +104,7 @@ typedef struct {
     char   method[8];
     char   path[512];
     char   query[512];
+    char  *headers;          /* bloc d'en-tetes brut (If-None-Match, ...) */
     char  *body;
     size_t body_len;
     char   bearer[80];
@@ -111,6 +112,7 @@ typedef struct {
 } request_t;
 
 void http_send(request_t *rq, int status, const char *mime, const char *data, size_t len);
+void http_send_cache(request_t *rq, int status, const char *mime, const char *data, size_t len, const char *cache_hdr);
 void http_json(request_t *rq, int status, cJSON *obj);
 void http_error(request_t *rq, int status, const char *code);
 int  http_serve_static(request_t *rq);
@@ -125,8 +127,8 @@ extern int g_port;
 int  app_open_browser(const char *url);
 
 /* assets generes (tools/gen_assets.py) */
-typedef struct { const char *path; const char *mime; const unsigned char *data; unsigned int size; } asset_t;
-extern const asset_t g_assets[];
+typedef struct { const char *path; const char *mime; const unsigned char *data; unsigned int size; char etag[24]; } asset_t;
+extern asset_t g_assets[];   /* non const : l'ETag y est memorise une fois */
 extern const int g_assets_count;
 
 #endif

@@ -160,6 +160,12 @@ int db_open(const char *dir)
         return -1;
     }
     sqlite3_busy_timeout(g_db, 4000);
+    /* NORMAL : bien plus rapide que FULL pour une seule ecriture a la fois,
+       et reste sans corruption (mode WAL). */
+    sqlite3_exec(g_db, "PRAGMA synchronous=NORMAL;", NULL, NULL, NULL);
+    /* tables deja en memoire : les requetes repetees ne relisent pas le disque */
+    sqlite3_exec(g_db, "PRAGMA cache_size=-8000;", NULL, NULL, NULL);
+    sqlite3_exec(g_db, "PRAGMA temp_store=MEMORY;", NULL, NULL, NULL);
     /* les cles etrangeres ne sont pas actives par defaut */
     if (sqlite3_prepare_v2(g_db, "PRAGMA foreign_keys=ON;", -1, &st, NULL) == SQLITE_OK) sqlite3_step(st);
     sqlite3_finalize(st);

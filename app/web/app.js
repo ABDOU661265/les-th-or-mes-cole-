@@ -156,7 +156,9 @@ async function boot() {
   $("#user-role").textContent = roleLabel(state.me.role);
   applyLang(LANG);
   refreshUnread();
-  go(me.user.must_change ? { name: "account", mustChange: true } : { name: "home" });
+  go(me.user.must_change && me.user.role !== "parent"
+     ? { name: "account", mustChange: true }
+     : { name: "home" });
   setTab("home");
 }
 
@@ -225,20 +227,45 @@ function render() {
     carnet: renderCarnet
   };
   const fn = map[r.name] || renderHome;
+  if (!render._warm[r.name]) {
+    /* premiere visite : on montre tout de suite l'en-tete (l'ecran ne
+       reste plus vide pendant le chargement des donnees) */
+    v.innerHTML = '<div class="page-title"><h1>' + esc(routeTitle(r)) + "</h1></div>" +
+                  '<div class="empty">' + t("loading") + "</div>";
+  }
   const out = fn(r);
   if (out && typeof out.then === "function") {
     out.then(html => {
+      render._warm[r.name] = 1;
       if (state.route !== r || typeof html !== "string") return;
       v.innerHTML = html;
       afterRender(r);
-    }).catch(() => { v.innerHTML = '<div class="empty">' + t("empty") + "</div>"; });
+    }).catch(() => {
+      v.innerHTML = '<div class="empty">' + t("empty") + "</div>";
+    });
   } else {
     v.innerHTML = out;
     afterRender(r);
   }
 }
 
+render._warm = {};
+
+/* titre affiche pendant le chargement, avant que les donnees arrivent */
+function routeTitle(r) {
+  const keys = {
+    home: "nav_home", messages: "nav_messages", children: "nav_children",
+    account: "nav_account", announcements: "t_announcements", homework: "t_homework",
+    schedule: "t_schedule", absences: "t_absences", grades: "t_grades",
+    fees: "t_fees", menu: "t_menu", bus: "t_bus", photos: "t_photos",
+    contact: "t_contact", users: "t_users", students: "t_students",
+    stats: "t_stats", audit: "t_audit", carnet: "t_carnet"
+  };
+  return keys[r.name] ? t(keys[r.name]) : "";
+}
+
 function afterRender(r) {
+  if (r.name === "users") updateChildBlock();
   if (r.name === "messages") markRead();
   if (r.name === "carnet") loadCarnet();
 }
@@ -376,7 +403,7 @@ function renderChildren() {
 function renderAccount(r) {
   const u = state.me;
   return pageTitle(t("nav_account")) +
-    (r.mustChange ? '<div class="panel" style="border-inline-start:4px solid var(--orange)"><p class="muted" style="margin:0">' + t("must_change") + "</p></div>" : "") +
+    (r.mustChange && u.role !== "parent" ? '<div class="panel" style="border-inline-start:4px solid var(--orange)"><p class="muted" style="margin:0">' + t("must_change") + "</p></div>" : "") +
     '<div class="panel"><h2>' + t("nav_account") + "</h2>" +
     '<div class="kv"><span>' + t("name") + "</span><span>" + esc(u.first_name) + "</span></div>" +
     '<div class="kv"><span>' + t("last_name") + "</span><span>" + esc(u.last_name) + "</span></div>" +
@@ -384,11 +411,14 @@ function renderAccount(r) {
     '<div class="kv"><span>' + t("role") + "</span><span>" + esc(roleLabel(u.role)) + "</span></div>" +
     '<div class="kv"><span>' + t("hours") + "</span><span>" + esc(u.last_login || "—") + "</span></div>" +
     "</div>" +
-    '<div class="panel"><h2>' + t("change_password") + '</h2><div class="form-grid">' +
-    '<input id="old-pw" type="password" placeholder="' + esc(t("old_password")) + '">' +
-    '<input id="new-pw" type="password" placeholder="' + esc(t("new_password")) + '">' +
-    '<button class="btn primary" onclick="changePassword()">' + t("save") + "</button>" +
-    "</div></div>" +
+    (u.role === "parent"
+      ? '<div class="panel"><h2>' + t("password_locked_title") + "</h2>" +
+        '<p class="muted" style="margin:0">' + t("password_locked") + "</p></div>"
+      : '<div class="panel"><h2>' + t("change_password") + '</h2><div class="form-grid">' +
+        '<input id="old-pw" type="password" placeholder="' + esc(t("old_password")) + '">' +
+        '<input id="new-pw" type="password" placeholder="' + esc(t("new_password")) + '">' +
+        '<button class="btn primary" onclick="changePassword()">' + t("save") + "</button>" +
+        "</div></div>") +
     '<button class="btn danger block" onclick="doLogout()">' + t("logout") + "</button>";
 }
 
@@ -763,6 +793,7 @@ async function renderUsers() {
     '<span class="chip ' + (u.role === "admin" ? "" : u.role === "moderator" ? "grey" : "green") + '">' + esc(roleLabel(u.role)) + "</span></div>" +
     '<div class="meta"><span>' + esc(u.email) + "</span></div>" +
     '<div class="meta">' + (u.active ? '<span class="chip green">' + t("active") + "</span>" : '<span class="chip red">' + t("no_account_yet") + "</span>") +
+    (u.role === "parent" && u.child_name ? "<span>👦 " + esc(u.child_name) + "</span>" : "") +
     (String(u.id) !== String(state.me.id) && u.role !== "admin"
       ? '<a href="#" onclick="toggleUser(' + u.id + "," + (u.active ? 0 : 1) + ');return false">' + (u.active ? t("delete") : t("active")) + "</a>" +
         '<a href="#" onclick="resetUserPassword(' + u.id + ');return false">' + t("new_password") + "</a>" +
@@ -775,29 +806,55 @@ async function renderUsers() {
     : '<option value="parent">' + t("role_parent") + "</option>";
 
   return pageTitle(t("t_users")) +
-    '<div class="panel"><h2>' + t("new_user") + "</h2><div class=\"form-grid\">" +
+    '<div class="panel"><h2>' + t("new_user") + '</h2><div class="form-grid">' +
     '<div class="two"><input id="nu-first" placeholder="' + esc(t("name")) + '"><input id="nu-last" placeholder="' + esc(t("last_name")) + '"></div>' +
-    '<input id="nu-email" type="email" placeholder="' + esc(t("email")) + '">' +
-    '<input id="nu-phone" placeholder="' + esc(t("phone")) + '">' +
-    "<select id=\"nu-role\">" + roleOptions + "</select>" +
+    '<input id="nu-email" type="email" inputmode="email" placeholder="' + esc(t("email")) + '">' +
+    '<input id="nu-phone" inputmode="tel" placeholder="' + esc(t("phone")) + '">' +
+    "<select id=\"nu-role\" onchange=\"updateChildBlock()\">" + roleOptions + "</select>" +
     '<input id="nu-pw" type="text" placeholder="' + esc(t("password")) + ' (Maj, min, chiffre)">' +
+    '<div id="nu-child"' + (isAdmin() ? "" : "") + '>' +
+      '<h3 style="margin:14px 0 6px">' + t("child_required_title") + '</h3>' +
+      '<p class="muted" style="margin:0 0 8px">' + t("child_required") + "</p>" +
+      '<div class="two"><input id="nu-child-first" placeholder="' + esc(t("name")) + '"><input id="nu-child-last" placeholder="' + esc(t("last_name")) + '"></div>' +
+      '<div class="two"><input id="nu-child-level" placeholder="' + esc(t("level")) + ' (Préscolaire, Primaire, Moyen)"><input id="nu-child-class" placeholder="3AP"></div>' +
+    "</div>" +
     '<button class="btn primary" onclick="createUser()">' + t("add") + "</button>" +
     '<p class="muted" style="margin:0">' + t("login_hint") + "</p>" +
     "</div></div>" +
     '<div class="list">' + items + "</div>";
 }
 
+/* le bloc enfant n'a de sens que pour un parent */
+function updateChildBlock() {
+  const role = $("#nu-role").value;
+  const box = $("#nu-child");
+  if (box) box.hidden = role !== "parent";
+}
+
 async function createUser() {
+  const role = $("#nu-role").value;
   const body = {
     first_name: $("#nu-first").value.trim(),
     last_name: $("#nu-last").value.trim(),
     email: $("#nu-email").value.trim(),
     phone: $("#nu-phone").value.trim(),
-    role: $("#nu-role").value,
+    role: role,
     password: $("#nu-pw").value
   };
   if (!body.first_name || !body.last_name || !body.email || !body.password) { toast(t("required")); return; }
-  try { await api("/users", { body }); toast(t("created")); render(); } catch (e) { fail(e); }
+  if (role === "parent") {
+    body.child_first_name = $("#nu-child-first").value.trim();
+    body.child_last_name = $("#nu-child-last").value.trim();
+    body.child_level = $("#nu-child-level").value.trim();
+    body.child_class = $("#nu-child-class").value.trim();
+    if (!body.child_first_name || !body.child_last_name ||
+        (!body.child_level && !body.child_class)) { toast(t("child_required")); return; }
+  }
+  try {
+    const d = await api("/users", { body });
+    toast(d.child_name ? t("created_with_child").replace("{child}", d.child_name) : t("created"));
+    render();
+  } catch (e) { fail(e); }
 }
 
 async function toggleUser(id, active) {

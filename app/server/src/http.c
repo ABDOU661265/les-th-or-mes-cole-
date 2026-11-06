@@ -16,7 +16,15 @@ static void send_all(sock_t s, const char *d, size_t n)
 
 void http_send(request_t *rq, int status, const char *mime, const char *data, size_t len)
 {
-    char head[512];
+    http_send_cache(rq, status, mime, data, len, NULL);
+}
+
+/* cache_hdr = NULL -> pas de cache ; sinon valeur de Cache-Control
+   (0 = pas de revalidation, 1 = revalidation avec ETag) */
+void http_send_cache(request_t *rq, int status, const char *mime, const char *data, size_t len,
+                     const char *cache_hdr)
+{
+    char head[640];
     const char *reason = "OK";
     int n;
     switch (status) {
@@ -35,12 +43,14 @@ void http_send(request_t *rq, int status, const char *mime, const char *data, si
                  "HTTP/1.1 %d %s\r\n"
                  "Content-Type: %s\r\n"
                  "Content-Length: %lu\r\n"
-                 "Cache-Control: no-store\r\n"
+                 "%s"
                  "X-Content-Type-Options: nosniff\r\n"
                  "X-Frame-Options: SAMEORIGIN\r\n"
                  "Referrer-Policy: no-referrer\r\n"
                  "Connection: close\r\n\r\n",
-                 status, reason, mime, (unsigned long)len);
+                 status, reason, mime, (unsigned long)len,
+                 (cache_hdr && cache_hdr[0]) ? cache_hdr :
+                 "Cache-Control: no-store\r\n");
     send_all(rq->sock, head, (size_t)n);
     if (data && len) send_all(rq->sock, data, len);
 }
@@ -89,6 +99,26 @@ static int path_is_safe(const char *p)
     return 1;
 }
 
+/* empreinte simple du contenu : suffit pour un ETag */
+static void small_hash(const char *data, size_t len, char *out, size_t cap)
+{
+    unsigned long h1 = 5381, h2 = 52711;
+    size_t i;
+    for (i = 0; i < len; i++) {
+        h1 = ((h1 << 5) + h1) ^ (unsigned char)data[i];
+        h2 = ((h2 << 5) + h2) + (unsigned char)data[i];
+    }
+    snprintf(out, cap, "%08lx%08lx%lx", h1 & 0xffffffffUL, h2 & 0xffffffffUL, (unsigned long)len);
+}
+
+/* le navigateur renvoie l'ETag : contenu identique -> 304, rien a transmettre */
+static int client_has_etag(request_t *rq, const char *etag)
+{
+    const char *inm = rq->headers ? strstr(rq->headers, "If-None-Match:") : NULL;
+    if (!inm) return 0;
+    return strstr(inm, etag) != NULL;
+}
+
 void http_serve_file(request_t *rq, const char *relpath)
 {
     char full[1200];
@@ -107,7 +137,24 @@ void http_serve_file(request_t *rq, const char *relpath)
     if (!buf) { fclose(f); http_error(rq, 500, "internal"); return; }
     if (fread(buf, 1, (size_t)size, f) != (size_t)size) { free(buf); fclose(f); http_error(rq, 500, "internal"); return; }
     fclose(f);
-    http_send(rq, 200, mime_of(relpath), buf, (size_t)size);
+    {
+        char etag[64];
+        char cache[320];
+        small_hash(buf, (size_t)size, etag, sizeof(etag));
+        snprintf(cache, sizeof(cache),
+                 "Cache-Control: private, max-age=3600\r\nETag: \"%s\"\r\n", etag);
+        if (client_has_etag(rq, etag)) {
+            char head[256];
+            int n = snprintf(head, sizeof(head),
+                             "HTTP/1.1 304 Not Modified\r\nETag: \"%s\"\r\n"
+                             "Cache-Control: private, max-age=3600\r\n"
+                             "Connection: close\r\n\r\n", etag);
+            send_all(rq->sock, head, (size_t)n);
+            free(buf);
+            return;
+        }
+        http_send_cache(rq, 200, mime_of(relpath), buf, (size_t)size, cache);
+    }
     free(buf);
 }
 
@@ -132,7 +179,26 @@ int http_serve_static(request_t *rq)
     /* 2) ressource embarquee dans l'executable */
     for (i = 0; i < g_assets_count; i++) {
         if (!strcmp(g_assets[i].path, p)) {
-            http_send(rq, 200, g_assets[i].mime, (const char *)g_assets[i].data, g_assets[i].size);
+            char etag[64], cache[320];
+            if (!g_assets[i].etag[0]) {
+                char *slot = (char *)g_assets[i].etag;   /* rempli une seule fois */
+                small_hash((const char *)g_assets[i].data, g_assets[i].size,
+                           slot, sizeof(g_assets[i].etag));
+            }
+            safe_copy(etag, sizeof(etag), g_assets[i].etag);
+            if (client_has_etag(rq, etag)) {
+                char head[256];
+                int n = snprintf(head, sizeof(head),
+                                 "HTTP/1.1 304 Not Modified\r\nETag: \"%s\"\r\n"
+                                 "Cache-Control: private, max-age=3600\r\n"
+                                 "Connection: close\r\n\r\n", etag);
+                send_all(rq->sock, head, (size_t)n);
+                return 1;
+            }
+            snprintf(cache, sizeof(cache),
+                     "Cache-Control: private, max-age=3600\r\nETag: \"%s\"\r\n", etag);
+            http_send_cache(rq, 200, g_assets[i].mime, (const char *)g_assets[i].data,
+                            g_assets[i].size, cache);
             return 1;
         }
     }
@@ -243,7 +309,15 @@ static int parse_request(sock_t s, request_t *rq)
             }
         }
     }
-    /* entetes */
+    /* entetes (on garde le bloc brut pour If-None-Match) */
+    {
+        char *hdr = (char *)malloc(header_end + 1);
+        if (hdr) {
+            memcpy(hdr, raw.data, header_end);
+            hdr[header_end] = 0;
+            rq->headers = hdr;
+        }
+    }
     {
         const char *auth = header_value(raw.data, "Authorization");
         if (auth && !strncasecmp(auth, "Bearer ", 7)) safe_copy(rq->bearer, sizeof(rq->bearer), auth + 7);
@@ -281,6 +355,7 @@ void http_handle(sock_t s)
     }
 
     if (rq.body) free(rq.body);
+    if (rq.headers) free(rq.headers);
     /* laisse le client lire la reponse avant fermeture */
 #ifdef _WIN32
     shutdown(s, SD_SEND);

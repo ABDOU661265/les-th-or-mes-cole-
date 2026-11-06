@@ -52,9 +52,14 @@ Il n'y a **pas** d'inscription libre (c'est voulu) :
 1. la direction (ou un modérateur) ouvre **Comptes** → *Créer un compte*,
 2. choisit le rôle (**Parent** ou **Modérateur**), saisit nom, e-mail et un mot de
    passe provisoire (8 caractères minimum, avec majuscule + minuscule + chiffre),
-3. **Élèves** → *Ajouter un élève* pour rattacher l'enfant au compte parent,
+3. dans le même formulaire, **« Enfant rattaché »** est obligatoire (prénom, nom,
+   classe) : le compte et l'élève sont créés ensemble, en une seule transaction.
+   La tuile **Élèves** sert ensuite à ajouter un frère ou une sœur ;
 4. elle remet l'e-mail et le mot de passe au parent ; celui-ci le change à la
    première connexion (*Compte* → *Changer le mot de passe*).
+
+> Particularité demandée : **le parent ne peut pas changer son mot de passe**.
+> S'il l'oublie, la direction lui en redonne un (*Comptes* → *Nouveau mot de passe*).
 
 ### Logo et thème
 
@@ -80,6 +85,7 @@ haut). L'arabe est affiché de droite à gauche. Les contenus saisis par l'écol
 
 - mots de passe **jamais stockés en clair** : PBKDF2-HMAC-SHA256, 100 000 itérations,
   sel aléatoire de 16 octets par compte ;
+- un compte parent sans enfant est refusé (`child_required`) ;
 - mot de passe refusé s'il fait moins de 8 caractères ou s'il n'a pas majuscule +
   minuscule + chiffre ; changement obligatoire à la première connexion des comptes
   créés par l'administration ;

@@ -57,9 +57,9 @@ def main() -> int:
         var = "asset_" + "".join(c if c.isalnum() else "_" for c in os.path.splitext(name)[0])
         lines.append("static const unsigned char %s[] = {%s\n};" % (var, escape_c(data)))
         lines.append("")
-        entries.append('    { "%s", "%s", %s, %d }' % (name, mime, var, len(data)))
+        entries.append('    { "%s", "%s", %s, %d, "" }' % (name, mime, var, len(data)))
 
-    lines.append("const asset_t g_assets[] = {")
+    lines.append("asset_t g_assets[] = {")
     lines.extend(e + "," for e in entries)
     lines.append("};")
     lines.append("const int g_assets_count = %d;" % len(entries))
